@@ -69,8 +69,8 @@ class Intent(str, Enum):
     REPEAT_LAST = "repeat_last"
 
     # User name
-    SET_USER_NAME = "Arjun"
-    ASK_MY_NAME = "Arjun"
+    SET_USER_NAME = "YOUR NAME"
+    ASK_MY_NAME = "YOUR NAME"
 
     # AI fallback
     AI_QUERY = "ai_query"
