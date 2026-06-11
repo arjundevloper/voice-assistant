@@ -1,0 +1,45 @@
+{
+  "user_name": "",
+  "overlay": {
+    "width": 240,
+    "height": 390,
+    "x": 1670,
+    "y": 640,
+    "opacity": 1,
+    "always_on_top": true,
+    "size_preset": "small",
+    "theme": "rose",
+    "mini_mode": false,
+    "show_status_bar": false,
+    "show_quick_actions": false
+  },
+  "voice": {
+    "voice": "en-US-AvaNeural",
+    "volume": 1,
+    "rate": "+6%",
+    "pitch": "+3Hz",
+    "wake_words": [
+      "emi",
+      "hey emi",
+      "amy",
+      "emmy",
+      "ami",
+      "assistant",
+      "cutie"
+    ],
+    "conversation_timeout": 45
+  },
+  "ai": {
+    "provider": "offline",
+    "enabled": false,
+    "ollama_model": "phi3:instruct",
+    "ollama_url": "http://localhost:11434",
+    "gemini_api_key": "",
+    "openai_api_key": "",
+    "openrouter_api_key": ""
+  },
+  "outfit": "default",
+  "startup": false,
+  "websocket_port": 8765,
+  "hotkey": "CommandOrControl+Shift+E"
+}

@@ -1,0 +1,986 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Emi v6</title>
+<style>
+/* ══════════════════════════════════════════════════════════════
+   Emi OS v6 Overlay — Full redesign
+   Themes: purple (default) · rose · sky
+   ══════════════════════════════════════════════════════════════ */
+
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+/* ── Theme tokens ── */
+:root {
+  --accent:     #9955ff;
+  --accent2:    #cc88ff;
+  --glow:       rgba(160,100,255,0.35);
+  --bubble-bg1: rgba(14,6,28,0.95);
+  --bubble-bg2: rgba(28,10,52,0.92);
+  --bubble-border: rgba(200,150,255,0.50);
+  --bubble-text: #f0e4ff;
+  --dot-idle:   #8855ff;
+  --panel-bg:   rgba(10,4,22,0.97);
+  --bar-bg:     rgba(10,4,22,0.82);
+  --btn-bg:     rgba(16,7,34,0.80);
+  --btn-hover:  rgba(80,35,160,0.65);
+  --ow: 320px; --oh: 520px;
+}
+[data-theme="rose"] {
+  --accent: #e060a0; --accent2: #ff9acc;
+  --glow: rgba(230,100,160,0.35);
+  --bubble-bg1: rgba(28,6,18,0.95); --bubble-bg2: rgba(50,10,30,0.92);
+  --bubble-border: rgba(255,150,200,0.50); --bubble-text: #ffe4f4;
+  --dot-idle: #e060a0; --panel-bg: rgba(20,4,14,0.97);
+  --bar-bg: rgba(20,4,14,0.82); --btn-bg: rgba(34,7,22,0.80);
+  --btn-hover: rgba(160,35,90,0.65);
+}
+[data-theme="sky"] {
+  --accent: #3090ff; --accent2: #80c4ff;
+  --glow: rgba(60,140,255,0.35);
+  --bubble-bg1: rgba(4,12,28,0.95); --bubble-bg2: rgba(8,20,48,0.92);
+  --bubble-border: rgba(100,170,255,0.50); --bubble-text: #e4f0ff;
+  --dot-idle: #3090ff; --panel-bg: rgba(4,8,22,0.97);
+  --bar-bg: rgba(4,8,22,0.82); --btn-bg: rgba(7,16,34,0.80);
+  --btn-hover: rgba(20,70,160,0.65);
+}
+
+html, body {
+  width: var(--ow); height: var(--oh);
+  overflow: hidden; background: transparent;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  user-select: none; -webkit-user-select: none;
+}
+
+/* ── Root layout ── */
+#root {
+  position: relative; width: var(--ow); height: var(--oh);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: flex-end;
+}
+
+/* ── Drag handle ── */
+#drag-handle {
+  position: absolute; top: 0; left: 0; right: 0; height: 50px;
+  cursor: grab; z-index: 30; -webkit-app-region: drag;
+}
+
+/* ══ SPEECH BUBBLE ══════════════════════════════════════════════ */
+#bubble {
+  position: absolute; top: 10px; left: 50%;
+  transform: translateX(-50%) translateY(-8px);
+  min-width: 110px; max-width: calc(var(--ow) - 24px);
+  background: linear-gradient(135deg, var(--bubble-bg1), var(--bubble-bg2));
+  border: 1px solid var(--bubble-border);
+  border-radius: 16px; padding: 8px 14px 9px;
+  font-size: clamp(10px, calc(var(--ow) * 0.037), 12.5px);
+  line-height: 1.55; color: var(--bubble-text); text-align: center;
+  box-shadow: 0 0 18px var(--glow), 0 6px 22px rgba(0,0,0,0.65),
+              inset 0 1px 0 rgba(255,255,255,0.07);
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  opacity: 0; pointer-events: none; z-index: 20;
+  transition: opacity 0.28s cubic-bezier(0.4,0,0.2,1),
+              transform 0.28s cubic-bezier(0.34,1.5,0.64,1);
+  will-change: opacity, transform;
+}
+#bubble.show { opacity:1; transform: translateX(-50%) translateY(0); }
+#bubble.hiding {
+  opacity:0; transform: translateX(-50%) translateY(-6px);
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+#bubble::after {
+  content:''; position:absolute; bottom:-8px; left:50%;
+  transform:translateX(-50%);
+  border:8px solid transparent;
+  border-top-color: var(--bubble-border);
+}
+
+/* Typing cursor blink */
+#bubble-text::after {
+  content: '▌'; font-size: 0.75em; opacity: 0;
+  animation: cursor-blink 0.6s step-end infinite;
+}
+#bubble.typing #bubble-text::after { opacity: 1; }
+@keyframes cursor-blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+/* Status dot */
+#status-dot {
+  position:absolute; top:8px; right:10px;
+  width:6px; height:6px; border-radius:50%;
+  background: var(--dot-idle); box-shadow: 0 0 5px var(--dot-idle);
+  animation: pulse-dot 2.2s ease-in-out infinite;
+  transition: background 0.35s, box-shadow 0.35s;
+}
+@keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(.65)} }
+#status-dot.listening { background:#44e899; box-shadow:0 0 9px #44e899; animation:none; }
+#status-dot.speaking  { background:#ff88d8; box-shadow:0 0 9px #ff88d8; animation:none; }
+#status-dot.typing-i  { background:#ffe066; box-shadow:0 0 9px #ffe066; animation:none; }
+#status-dot.offline   { background:#ff4455; box-shadow:0 0 7px #ff4455; }
+
+/* ══ SPRITE / CHARACTER ════════════════════════════════════════ */
+#sprite-wrap {
+  position: relative;
+  width: calc(var(--ow) - 20px);
+  height: calc(var(--oh) - 125px);
+  min-height: 120px; flex-shrink: 0;
+  cursor: default;
+  animation: float 5.5s ease-in-out infinite;
+  will-change: transform;
+  transform: translateZ(0); /* force GPU layer */
+}
+@keyframes float { 0%,100%{transform:translateY(0) translateZ(0)} 50%{transform:translateY(-8px) translateZ(0)} }
+
+.sprite-layer {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 10px 28px var(--glow));
+  pointer-events: none;
+  transition: opacity 0.26s cubic-bezier(0.4,0,0.2,1);
+  will-change: opacity;
+}
+#sprite-front { opacity:1; z-index:2; }
+#sprite-back  { opacity:0; z-index:1; }
+
+/* Sparkle particles (shown on happy expression) */
+#sparkles { position:absolute; inset:0; pointer-events:none; z-index:6; overflow:hidden; }
+.spark {
+  position:absolute; width:5px; height:5px; border-radius:50%;
+  background: var(--accent2); box-shadow: 0 0 6px var(--accent2);
+  animation: spark-fly 1.4s ease-out forwards;
+  opacity: 0;
+}
+@keyframes spark-fly {
+  0%   { opacity:1; transform: translate(0,0) scale(1); }
+  100% { opacity:0; transform: translate(var(--dx), var(--dy)) scale(0); }
+}
+
+/* ══ HITBOXES ══════════════════════════════════════════════════ */
+.hitbox {
+  position: absolute; cursor: pointer; z-index: 5; border-radius: 8px;
+  transition: background 0.15s;
+}
+.hitbox:hover { background: rgba(255,200,255,0.06); }
+body.show-hitboxes .hitbox {
+  border: 1.5px dashed rgba(200,80,255,0.75);
+  background: rgba(180,60,255,0.08) !important;
+}
+
+/* ══ FLASH ════════════════════════════════════════════════════ */
+#flash {
+  position:absolute; inset:0; pointer-events:none; z-index:25;
+  background: radial-gradient(circle at 50% 60%, rgba(255,180,255,0.20), transparent 65%);
+  opacity:0; transition: opacity 0.18s;
+}
+#flash.show { opacity:1; }
+
+/* ══ STATUS BAR ═══════════════════════════════════════════════ */
+#status-bar {
+  width: calc(var(--ow) - 10px); height: 22px; flex-shrink:0;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 8px; margin-bottom: 2px;
+  background: var(--bar-bg); border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.06);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  font-size: 9.5px; color: rgba(200,180,240,0.6);
+  -webkit-app-region: no-drag;
+}
+#sb-time  { font-variant-numeric: tabular-nums; }
+#sb-vol   { display:flex; align-items:center; gap:3px; }
+#vol-bar  { width: 36px; height: 3px; background: rgba(255,255,255,0.12); border-radius:2px; overflow:hidden; }
+#vol-fill { height:100%; background: var(--accent); border-radius:2px; transition: width 0.4s ease; }
+#sb-mode  { font-size:8.5px; color: var(--accent2); opacity:0.8; }
+
+/* ══ COMMAND INPUT ════════════════════════════════════════════ */
+#cmd-wrap {
+  width: calc(var(--ow) - 10px); flex-shrink:0;
+  margin-bottom: 3px; position: relative;
+  -webkit-app-region: no-drag;
+}
+#cmd-input {
+  width: 100%; padding: 5px 30px 5px 10px;
+  background: var(--bar-bg); border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 10px; color: var(--bubble-text); font-size: 10.5px;
+  outline: none; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  transition: border-color 0.18s, box-shadow 0.18s;
+}
+#cmd-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent), 0 0 10px var(--glow);
+}
+#cmd-input::placeholder { color: rgba(200,180,240,0.35); font-size:10px; }
+#cmd-send {
+  position:absolute; right:5px; top:50%; transform:translateY(-50%);
+  background:none; border:none; color: var(--accent2); font-size:13px;
+  cursor:pointer; padding:2px 3px; border-radius:4px;
+  transition: color 0.15s, transform 0.1s;
+}
+#cmd-send:hover { color: #fff; transform:translateY(-50%) scale(1.15); }
+
+/* ══ QUICK ACTIONS ════════════════════════════════════════════ */
+#quick-actions {
+  width: calc(var(--ow) - 10px); flex-shrink:0;
+  display: flex; gap: 4px; margin-bottom: 3px;
+  flex-wrap: wrap; justify-content: center;
+  -webkit-app-region: no-drag;
+}
+.qa-btn {
+  flex: 0 0 auto; padding: 3px 7px;
+  background: var(--btn-bg); border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 8px; color: rgba(210,185,255,0.85); font-size: 9px;
+  cursor: pointer; display:flex; align-items:center; gap:3px;
+  transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  white-space: nowrap;
+}
+.qa-btn:hover { background: var(--btn-hover); box-shadow: 0 0 8px var(--glow); transform:scale(1.05); }
+.qa-btn:active { transform:scale(0.95); }
+
+/* ══ BOTTOM BAR ═══════════════════════════════════════════════ */
+#bottom-bar {
+  width: calc(var(--ow) - 10px); height: 42px; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center;
+  gap:6px; padding-bottom:5px;
+  -webkit-app-region: no-drag;
+}
+.ctrl-btn {
+  width:30px; height:30px; border-radius:50%;
+  border:1px solid rgba(180,130,255,0.32);
+  background: var(--btn-bg); color: var(--accent2); font-size:13px;
+  cursor:pointer; display:flex; align-items:center; justify-content:center;
+  transition: background 0.15s, transform 0.12s, box-shadow 0.15s;
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  flex-shrink:0;
+}
+.ctrl-btn:hover { background: var(--btn-hover); box-shadow:0 0 10px var(--glow); transform:scale(1.13); }
+.ctrl-btn:active { transform:scale(0.90); }
+.ctrl-btn.active { background: var(--btn-hover); box-shadow: 0 0 10px var(--glow); }
+
+/* ══ SETTINGS PANEL ═══════════════════════════════════════════ */
+#settings-panel {
+  position:fixed; bottom:48px; right:5px;
+  width: min(calc(var(--ow) - 16px), 310px);
+  max-height: calc(var(--oh) - 120px);
+  overflow-y: auto; overflow-x: hidden;
+  background: var(--panel-bg);
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 14px; padding: 12px 13px 14px;
+  z-index: 50; pointer-events: auto;
+  opacity:0; transform: translateY(8px) scale(0.97);
+  transition: opacity 0.24s cubic-bezier(0.4,0,0.2,1),
+              transform 0.24s cubic-bezier(0.34,1.4,0.64,1);
+  box-shadow: 0 8px 36px rgba(0,0,0,0.80);
+  scrollbar-width: thin; scrollbar-color: var(--accent) transparent;
+  -webkit-app-region: no-drag;
+  pointer-events: none;
+}
+#settings-panel.open { opacity:1; transform: translateY(0) scale(1); pointer-events:auto; }
+#settings-panel::-webkit-scrollbar { width:4px; }
+#settings-panel::-webkit-scrollbar-thumb { background: var(--accent); border-radius:2px; }
+
+.sp-section { margin-bottom:12px; }
+.sp-title {
+  font-size:9px; font-weight:700; text-transform:uppercase;
+  letter-spacing:0.1em; color: var(--accent2); margin-bottom:7px;
+  opacity:0.8;
+}
+.sp-row {
+  display:flex; align-items:center; gap:7px;
+  margin-bottom:6px; font-size:10.5px; color:rgba(210,185,255,0.8);
+}
+.sp-row label { flex:0 0 68px; font-size:10px; }
+.sp-row input[type=range] {
+  flex:1; accent-color: var(--accent); height:3px; cursor:pointer;
+}
+.sp-row span { flex:0 0 34px; text-align:right; font-size:9.5px; color:rgba(180,150,220,0.7); }
+.sp-row input[type=checkbox] { accent-color: var(--accent); cursor:pointer; }
+.sp-row input[type=text] {
+  flex:1; background: rgba(255,255,255,0.05);
+  border:1px solid rgba(255,255,255,0.12); border-radius:5px;
+  color: var(--bubble-text); font-size:10px; padding:2px 6px; outline:none;
+}
+
+.sp-grid { display:flex; gap:4px; flex-wrap:wrap; }
+.sp-btn {
+  flex:1; min-width:60px; padding:4px 6px;
+  background: var(--btn-bg); border:1px solid rgba(255,255,255,0.10);
+  border-radius:7px; color:rgba(210,185,255,0.85); font-size:9px;
+  cursor:pointer; text-align:center;
+  transition: background 0.14s, transform 0.1s;
+}
+.sp-btn:hover { background: var(--btn-hover); }
+.sp-btn:active { transform:scale(0.95); }
+.sp-btn.active { background: var(--btn-hover); border-color: var(--accent); }
+.sp-sep { border:none; border-top:1px solid rgba(255,255,255,0.07); margin: 8px 0; }
+
+/* ══ NOTIFICATION TOASTS ══════════════════════════════════════ */
+#toast-area {
+  position:absolute; top:50px; left:50%;
+  transform:translateX(-50%);
+  display:flex; flex-direction:column; gap:5px;
+  z-index:60; pointer-events:none; width: calc(var(--ow) - 20px);
+}
+.toast {
+  background: var(--panel-bg);
+  border:1px solid rgba(255,255,255,0.10);
+  border-left: 3px solid var(--accent);
+  border-radius:8px; padding:5px 10px;
+  font-size:10px; color: var(--bubble-text);
+  opacity:0; transform: translateY(-4px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  backdrop-filter: blur(10px);
+}
+.toast.show { opacity:1; transform:translateY(0); }
+.toast.ok   { border-left-color: #44e899; }
+.toast.warn { border-left-color: #ffb055; }
+.toast.err  { border-left-color: #ff4455; }
+
+/* ══ MINI MODE ════════════════════════════════════════════════ */
+body.mini #root { display:block; }
+body.mini #drag-handle { height:100%; border-radius:50%; -webkit-app-region:drag; }
+body.mini #sprite-wrap {
+  width:100% !important; height:100% !important;
+  animation: none; border-radius:50%; overflow:hidden;
+  cursor:pointer;
+}
+body.mini #sprite-front, body.mini #sprite-back { border-radius:50%; }
+body.mini #bottom-bar, body.mini #quick-actions,
+body.mini #cmd-wrap, body.mini #status-bar { display:none !important; }
+body.mini #bubble {
+  top:-38px; font-size:9px; min-width:70px; border-radius:10px; padding:4px 8px;
+}
+body.mini #settings-panel { display:none; }
+
+/* ══ SCROLLBAR ════════════════════════════════════════════════ */
+* { scrollbar-width:thin; scrollbar-color: var(--accent) transparent; }
+</style>
+</head>
+<body>
+<div id="root">
+  <div id="drag-handle"></div>
+
+  <!-- Speech bubble -->
+  <div id="bubble">
+    <div id="status-dot"></div>
+    <span id="bubble-text">Starting up~ 💕</span>
+  </div>
+
+  <!-- Character sprite (two-layer crossfade) -->
+  <div id="sprite-wrap">
+    <img id="sprite-front" class="sprite-layer" src="../assets/expressions/Idle.png" alt="Emi" draggable="false">
+    <img id="sprite-back"  class="sprite-layer" src="../assets/expressions/Idle.png" alt="" draggable="false">
+    <div id="sparkles"></div>
+  </div>
+
+  <div id="flash"></div>
+  <div id="toast-area"></div>
+
+  <!-- Status bar -->
+  <div id="status-bar">
+    <span id="sb-time">--:--</span>
+    <span id="sb-vol">
+      🔊 <div id="vol-bar"><div id="vol-fill" style="width:70%"></div></div>
+    </span>
+    <span id="sb-mode">IDLE</span>
+  </div>
+
+  <!-- Command input -->
+  <div id="cmd-wrap">
+    <input id="cmd-input" type="text" placeholder="Type a command… (Enter to run)" autocomplete="off" spellcheck="false">
+    <button id="cmd-send" title="Send">➤</button>
+  </div>
+
+  <!-- Quick actions -->
+  <div id="quick-actions">
+    <button class="qa-btn" data-cmd="screenshot">📸 Screenshot</button>
+    <button class="qa-btn" data-cmd="volume up">🔊 Vol+</button>
+    <button class="qa-btn" data-cmd="volume down">🔉 Vol-</button>
+    <button class="qa-btn" data-cmd="mute">🔇 Mute</button>
+    <button class="qa-btn" data-cmd="alt tab">🔀 Alt+Tab</button>
+    <button class="qa-btn" data-cmd="lock">🔒 Lock</button>
+  </div>
+
+  <!-- Bottom bar -->
+  <div id="bottom-bar">
+    <button class="ctrl-btn" id="btn-mini"     title="Mini mode (Ctrl+M)">⊟</button>
+    <button class="ctrl-btn" id="btn-mute-emi" title="Mute TTS">🔇</button>
+    <button class="ctrl-btn" id="btn-sleep"    title="Sleep Emi">💤</button>
+    <button class="ctrl-btn" id="btn-settings" title="Settings">⚙️</button>
+    <button class="ctrl-btn" id="btn-close"    title="Close">✕</button>
+  </div>
+</div>
+
+<!-- Settings panel -->
+<div id="settings-panel">
+  <div class="sp-section">
+    <div class="sp-title">🎨 Theme</div>
+    <div class="sp-grid" id="theme-btns">
+      <button class="sp-btn active" data-theme="purple">💜 Purple</button>
+      <button class="sp-btn" data-theme="rose">🌸 Rose</button>
+      <button class="sp-btn" data-theme="sky">💙 Sky</button>
+    </div>
+  </div>
+  <hr class="sp-sep">
+  <div class="sp-section">
+    <div class="sp-title">📐 Size</div>
+    <div class="sp-grid" id="size-btns">
+      <button class="sp-btn" data-preset="tiny">Tiny</button>
+      <button class="sp-btn" data-preset="small">Small</button>
+      <button class="sp-btn active" data-preset="large">Large</button>
+      <button class="sp-btn" data-preset="xlarge">XL</button>
+    </div>
+    <div class="sp-row" style="margin-top:6px;">
+      <label>Opacity</label>
+      <input type="range" id="sl-opacity" min="20" max="100" value="100">
+      <span id="lbl-opacity">100%</span>
+    </div>
+  </div>
+  <hr class="sp-sep">
+  <div class="sp-section">
+    <div class="sp-title">📌 Position</div>
+    <div class="sp-grid">
+      <button class="sp-btn" data-side="top-left">↖ TL</button>
+      <button class="sp-btn" data-side="top-right">↗ TR</button>
+      <button class="sp-btn" data-side="left">◀ Left</button>
+      <button class="sp-btn" data-side="right">Right ▶</button>
+    </div>
+  </div>
+  <hr class="sp-sep">
+  <div class="sp-section">
+    <div class="sp-title">⚙️ Options</div>
+    <div class="sp-row">
+      <label>Always top</label>
+      <input type="checkbox" id="chk-aot" checked>
+    </div>
+    <div class="sp-row">
+      <label>Status bar</label>
+      <input type="checkbox" id="chk-statusbar" checked>
+    </div>
+    <div class="sp-row">
+      <label>Quick actions</label>
+      <input type="checkbox" id="chk-qa" checked>
+    </div>
+    <div class="sp-row">
+      <label>Show hitboxes</label>
+      <input type="checkbox" id="chk-hitboxes">
+    </div>
+  </div>
+</div>
+
+<script>
+// ══ CONSTANTS ════════════════════════════════════════════════════════════════
+const EXPR = {
+  Idle:      '../assets/expressions/Idle.png',
+  Happy:     '../assets/expressions/Happy.png',
+  Listening: '../assets/expressions/Listening.png',
+  Working:   '../assets/expressions/Working.png',
+  Sleeping:  '../assets/expressions/Sleeping.png',
+  Blush:     '../assets/expressions/Blush.png',
+  Tsundere:  '../assets/expressions/Tsundere.png',
+  Blink:     '../assets/expressions/Blink.png',
+};
+
+// Preload all images for instant swaps
+Object.values(EXPR).forEach(src => { const i = new Image(); i.src = src; });
+
+// ══ STATE ════════════════════════════════════════════════════════════════════
+const front      = document.getElementById('sprite-front');
+const back       = document.getElementById('sprite-back');
+const bubbleEl   = document.getElementById('bubble');
+const bubbleText = document.getElementById('bubble-text');
+const statusDot  = document.getElementById('status-dot');
+const flashEl    = document.getElementById('flash');
+const sparkles   = document.getElementById('sparkles');
+const sbTime     = document.getElementById('sb-time');
+const volFill    = document.getElementById('vol-fill');
+const sbMode     = document.getElementById('sb-mode');
+const settingsEl = document.getElementById('settings-panel');
+const cmdInput   = document.getElementById('cmd-input');
+
+let currentExpr  = 'Idle';
+let bubbleTimer  = null;
+let hideTimer    = null;
+let muted        = false;
+let settingsOpen = false;
+let ws           = null;
+let miniMode     = false;
+let currentTheme = 'purple';
+let currentVol   = 70;
+
+// ══ EXPRESSION CROSSFADE ════════════════════════════════════════════════════
+function setExpression(expr) {
+  if (!EXPR[expr]) return;
+  if (expr === currentExpr) return;
+  currentExpr = expr;
+
+  back.src = EXPR[expr];
+  back.onload = () => {
+    front.style.opacity = '0';
+    back.style.opacity  = '1';
+    setTimeout(() => {
+      front.src = EXPR[expr];
+      front.style.opacity = '1';
+      back.style.opacity  = '0';
+    }, 280);
+  };
+
+  statusDot.className = '';
+  if (expr === 'Listening') statusDot.classList.add('listening');
+  else if (expr === 'Happy' || expr === 'Blush') statusDot.classList.add('speaking');
+  if (expr === 'Happy') spawnSparkles();
+}
+
+// ══ SPARKLES ════════════════════════════════════════════════════════════════
+function spawnSparkles() {
+  for (let i = 0; i < 10; i++) {
+    const s = document.createElement('div');
+    s.className = 'spark';
+    const x = 30 + Math.random() * 40; // % across sprite
+    const y = 10 + Math.random() * 60;
+    const dx = (Math.random() - 0.5) * 80 + 'px';
+    const dy = -(30 + Math.random() * 50) + 'px';
+    s.style.cssText = `left:${x}%;top:${y}%;--dx:${dx};--dy:${dy};
+      animation-delay:${Math.random() * 0.4}s;
+      animation-duration:${0.9 + Math.random() * 0.6}s;`;
+    sparkles.appendChild(s);
+    setTimeout(() => s.remove(), 1600);
+  }
+}
+
+// ══ SPEECH BUBBLE ════════════════════════════════════════════════════════════
+let typeInterval = null;
+
+function showBubble(text, autoDismissMs = 0, typewrite = false) {
+  clearTimeout(bubbleTimer);
+  clearTimeout(hideTimer);
+  clearInterval(typeInterval);
+  bubbleEl.classList.remove('hiding');
+  void bubbleEl.offsetWidth;
+
+  if (typewrite && text.length > 0) {
+    bubbleText.textContent = '';
+    bubbleEl.classList.add('show', 'typing');
+    let i = 0;
+    typeInterval = setInterval(() => {
+      bubbleText.textContent += text[i++];
+      if (i >= text.length) {
+        clearInterval(typeInterval);
+        bubbleEl.classList.remove('typing');
+        if (autoDismissMs > 0) bubbleTimer = setTimeout(hideBubble, autoDismissMs);
+      }
+    }, 22);
+  } else {
+    bubbleText.textContent = text;
+    bubbleEl.classList.add('show');
+    if (autoDismissMs > 0) bubbleTimer = setTimeout(hideBubble, autoDismissMs);
+  }
+}
+
+function hideBubble() {
+  clearTimeout(bubbleTimer);
+  clearTimeout(hideTimer);
+  clearInterval(typeInterval);
+  bubbleEl.classList.remove('typing');
+  bubbleEl.classList.add('hiding');
+  hideTimer = setTimeout(() => {
+    bubbleEl.classList.remove('show', 'hiding');
+    statusDot.className = '';
+  }, 220);
+}
+
+// ══ BLINK ════════════════════════════════════════════════════════════════════
+function doBlink() {
+  if (currentExpr === 'Sleeping') return;
+  const prevSrc = EXPR[currentExpr] || EXPR.Idle;
+  back.src = EXPR.Blink;
+  back.style.opacity = '1';
+  front.style.opacity = '0';
+  setTimeout(() => {
+    back.src = prevSrc;
+    front.style.opacity = '1';
+    back.style.opacity = '0';
+  }, 130);
+}
+function scheduleBlink() {
+  setTimeout(() => { doBlink(); scheduleBlink(); }, 3500 + Math.random() * 5000);
+}
+scheduleBlink();
+
+// ══ FLASH ════════════════════════════════════════════════════════════════════
+function doFlash() {
+  flashEl.classList.add('show');
+  setTimeout(() => flashEl.classList.remove('show'), 230);
+}
+
+// ══ TOAST NOTIFICATIONS ══════════════════════════════════════════════════════
+const toastArea = document.getElementById('toast-area');
+function showToast(msg, type = '', durationMs = 2500) {
+  const t = document.createElement('div');
+  t.className = 'toast ' + type;
+  t.textContent = msg;
+  toastArea.appendChild(t);
+  void t.offsetWidth;
+  t.classList.add('show');
+  setTimeout(() => {
+    t.classList.remove('show');
+    setTimeout(() => t.remove(), 250);
+  }, durationMs);
+}
+
+// ══ STATUS BAR ═══════════════════════════════════════════════════════════════
+function updateClock() {
+  const n = new Date();
+  const h = n.getHours().toString().padStart(2,'0');
+  const m = n.getMinutes().toString().padStart(2,'0');
+  sbTime.textContent = h + ':' + m;
+}
+updateClock();
+setInterval(updateClock, 15000);
+
+function setVolumeDisplay(level) {
+  currentVol = Math.max(0, Math.min(100, level));
+  volFill.style.width = currentVol + '%';
+  volFill.style.background = currentVol === 0 ? '#ff4455' : 'var(--accent)';
+}
+
+function setModeLabel(mode) {
+  sbMode.textContent = mode.toUpperCase();
+}
+
+// ══ HITBOXES ═════════════════════════════════════════════════════════════════
+const DEFAULT_HITBOXES = [
+  { id:'head', x:25, y:5,  width:50, height:28, expression:'Blush',    zone:'head' },
+  { id:'body', x:18, y:33, width:64, height:40, expression:'Tsundere', zone:'body' },
+];
+let hitboxDefs = DEFAULT_HITBOXES;
+
+function buildHitboxes(defs) {
+  document.querySelectorAll('.hitbox').forEach(e => e.remove());
+  defs.forEach(hb => {
+    const d = document.createElement('div');
+    d.className = 'hitbox';
+    d.dataset.zone = hb.zone || hb.id;
+    d.dataset.expression = hb.expression || 'Blush';
+    d.style.cssText = `left:${hb.x}%;top:${hb.y}%;width:${hb.width}%;height:${hb.height}%;`;
+    d.title = hb.label || hb.id;
+    d.addEventListener('click', () => onHitboxClick(d.dataset.zone, d.dataset.expression));
+    document.getElementById('sprite-wrap').appendChild(d);
+  });
+  hitboxDefs = defs;
+}
+
+
+// Also handle hitboxes pushed from main on init (belt-and-suspenders)
+if (window.electronAPI && window.electronAPI.onInitHitboxes) {
+  window.electronAPI.onInitHitboxes(defs => {
+    if (defs && defs.length) buildHitboxes(defs);
+  });
+}
+
+function onHitboxClick(zone, expression) {
+  doFlash();
+  const expr = EXPR[expression] ? expression : (zone === 'head' ? 'Blush' : 'Tsundere');
+  setExpression(expr);
+  if (ws && ws.readyState === WebSocket.OPEN)
+    ws.send(JSON.stringify({ type:'hitbox_click', zone }));
+}
+
+
+// ══ WEBSOCKET ════════════════════════════════════════════════════════════════
+let wsRetry = 1000;
+function connectWS() {
+  ws = new WebSocket('ws://localhost:8765');
+  ws.onopen = () => {
+    wsRetry = 1000;
+    statusDot.classList.remove('offline');
+    showBubble('Connected~ 💕', 2400, true);
+    setModeLabel('IDLE');
+  };
+  ws.onmessage = (e) => {
+    try {
+      const msg = JSON.parse(e.data);
+      switch (msg.type) {
+        case 'expression':
+          setExpression(msg.expression ?? msg.value); break;
+        case 'speech_bubble':
+          if (msg.text) {
+            showBubble(msg.text, 0, true);
+            statusDot.classList.add('speaking');
+          } else hideBubble();
+          break;
+        case 'blink':
+          doBlink(); break;
+        case 'init':
+          setExpression(msg.expression ?? 'Idle'); break;
+        case 'hitboxes':
+          if (Array.isArray(msg.hitboxes)) buildHitboxes(msg.hitboxes); break;
+        case 'volume':
+          setVolumeDisplay(msg.level ?? currentVol); break;
+        case 'mode':
+          setModeLabel(msg.label ?? 'IDLE'); break;
+        case 'toast':
+          showToast(msg.text, msg.style || '', msg.duration || 2500); break;
+      }
+    } catch {}
+  };
+  ws.onclose = () => {
+    statusDot.className = 'offline';
+    showBubble('Reconnecting~ 🔄');
+    setModeLabel('OFFLINE');
+    setTimeout(connectWS, wsRetry);
+    wsRetry = Math.min(wsRetry * 1.4, 8000);
+  };
+  ws.onerror = () => ws.close();
+}
+connectWS();
+
+// ══ IPC (Electron) ═══════════════════════════════════════════════════════════
+if (window.electronAPI) {
+  window.electronAPI.onExpression(e  => setExpression(e));
+  window.electronAPI.onSpeechBubble(t => t ? showBubble(t, 0, true) : hideBubble());
+  window.electronAPI.onBlink(()        => doBlink());
+  window.electronAPI.onMiniMode(v      => applyMiniMode(v));
+  window.electronAPI.onGlobalHotkey(() => { cmdInput.focus(); showBubble("I'm listening~", 0); });
+  window.electronAPI.onInitSettings(s  => applySettings(s));
+  window.electronAPI.onOverlayResized(({width, height}) => {
+    document.documentElement.style.setProperty('--ow', width + 'px');
+    document.documentElement.style.setProperty('--oh', height + 'px');
+  });
+}
+
+// ══ COMMAND INPUT ════════════════════════════════════════════════════════════
+function sendCommand(text) {
+  const cmd = text.trim();
+  if (!cmd) return;
+  cmdInput.value = '';
+  statusDot.classList.add('typing-i');
+  setModeLabel('CMD');
+  showBubble('Got it~ Running…', 0);
+  if (ws && ws.readyState === WebSocket.OPEN)
+    ws.send(JSON.stringify({ type:'text_command', text: cmd }));
+}
+
+cmdInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter') sendCommand(cmdInput.value);
+  if (e.key === 'Escape') { cmdInput.blur(); hideBubble(); }
+});
+document.getElementById('cmd-send').addEventListener('click', () => sendCommand(cmdInput.value));
+
+// Quick action buttons
+document.querySelectorAll('.qa-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const cmd = btn.dataset.cmd;
+    showToast(cmd, 'ok', 1500);
+    sendCommand(cmd);
+  });
+});
+
+// ══ MOUSE PASSTHROUGH ════════════════════════════════════════════════════════
+const root = document.getElementById('root');
+let _ignoreMouseTimer = null;
+function scheduleIgnoreMouse() {
+  clearTimeout(_ignoreMouseTimer);
+  _ignoreMouseTimer = setTimeout(() => {
+    if (settingsOpen) return;
+    if (document.activeElement === cmdInput) return;
+    if (window.electronAPI) window.electronAPI.setIgnoreMouse(true);
+  }, 120); // 120ms grace — kills flicker from sub-element mouse-leave events
+}
+root.addEventListener('mouseenter', () => {
+  clearTimeout(_ignoreMouseTimer);
+  if (window.electronAPI) window.electronAPI.setIgnoreMouse(false);
+});
+root.addEventListener('mouseleave', () => {
+  scheduleIgnoreMouse();
+});
+settingsEl.addEventListener('mouseenter', () => {
+  clearTimeout(_ignoreMouseTimer);
+  if (window.electronAPI) window.electronAPI.setIgnoreMouse(false);
+});
+cmdInput.addEventListener('focus', () => {
+  clearTimeout(_ignoreMouseTimer);
+  if (window.electronAPI) window.electronAPI.setIgnoreMouse(false);
+});
+cmdInput.addEventListener('blur', () => {
+  if (!settingsOpen) scheduleIgnoreMouse();
+});
+
+// ══ CONTROLS ═════════════════════════════════════════════════════════════════
+document.getElementById('btn-close').addEventListener('click', () => window.close());
+
+document.getElementById('btn-sleep').addEventListener('click', () => {
+  setExpression('Sleeping');
+  showBubble('zzz~ 💤', 4000);
+  setModeLabel('SLEEP');
+});
+
+document.getElementById('btn-mute-emi').addEventListener('click', () => {
+  muted = !muted;
+  document.getElementById('btn-mute-emi').textContent = muted ? '🔕' : '🔇';
+  showBubble(muted ? 'Muted 🤫' : 'Unmuted~', 2000);
+  if (ws && ws.readyState === WebSocket.OPEN)
+    ws.send(JSON.stringify({ type:'mute', muted }));
+});
+
+document.getElementById('btn-mini').addEventListener('click', () => {
+  if (window.electronAPI) window.electronAPI.toggleMini();
+  else applyMiniMode(!miniMode);
+});
+
+// ══ MINI MODE ═════════════════════════════════════════════════════════════════
+function applyMiniMode(v) {
+  miniMode = v;
+  document.body.classList.toggle('mini', v);
+  document.getElementById('btn-mini').textContent = v ? '⊞' : '⊟';
+  if (v) {
+    showBubble('Mini mode~', 1800);
+    // In mini mode the window is a small circle — always receive mouse events
+    // so the user can dblclick to expand
+    if (window.electronAPI) window.electronAPI.setIgnoreMouse(false);
+  } else {
+    // Back to normal — restore passthrough (mouseleave will manage it)
+    if (window.electronAPI) window.electronAPI.setIgnoreMouse(false);
+  }
+}
+
+// Double click in mini mode → expand; in normal mode → open command input
+document.getElementById('sprite-wrap').addEventListener('dblclick', () => {
+  if (miniMode) {
+    if (window.electronAPI) window.electronAPI.toggleMini();
+    else applyMiniMode(false);
+  } else {
+    cmdInput.focus();
+  }
+});
+
+// Keyboard shortcut: Ctrl+M = toggle mini
+document.addEventListener('keydown', e => {
+  if (e.ctrlKey && (e.key === 'm' || e.key === 'M')) {
+    e.preventDefault();
+    if (window.electronAPI) window.electronAPI.toggleMini();
+    else applyMiniMode(!miniMode);
+  }
+  if (e.ctrlKey && (e.key === 'k' || e.key === 'K')) {
+    cmdInput.focus(); e.preventDefault();
+  }
+});
+
+// ══ SETTINGS PANEL ════════════════════════════════════════════════════════════
+const btnSettings = document.getElementById('btn-settings');
+btnSettings.addEventListener('click', e => {
+  e.stopPropagation();
+  settingsOpen = !settingsOpen;
+  settingsEl.classList.toggle('open', settingsOpen);
+  btnSettings.classList.toggle('active', settingsOpen);
+  if (settingsOpen) loadBoundsIntoSettings();
+  if (window.electronAPI) window.electronAPI.setIgnoreMouse(false);
+});
+document.addEventListener('click', e => {
+  if (settingsOpen && !settingsEl.contains(e.target) && e.target !== btnSettings) {
+    settingsOpen = false;
+    settingsEl.classList.remove('open');
+    btnSettings.classList.remove('active');
+  }
+});
+
+// Themes
+document.querySelectorAll('#theme-btns .sp-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#theme-btns .sp-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    applyTheme(btn.dataset.theme);
+    if (window.electronAPI) window.electronAPI.saveSettings({ overlay: { theme: btn.dataset.theme }});
+  });
+});
+function applyTheme(name) {
+  currentTheme = name;
+  document.documentElement.dataset.theme = name;
+}
+
+// Size presets
+document.querySelectorAll('#size-btns .sp-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#size-btns .sp-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    if (window.electronAPI) window.electronAPI.resizeOverlay(btn.dataset.preset, 0, 0);
+  });
+});
+
+// Position buttons
+document.querySelectorAll('[data-side]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    if (window.electronAPI) window.electronAPI.moveOverlaySide(btn.dataset.side);
+  });
+});
+
+// Opacity slider
+const slOp = document.getElementById('sl-opacity');
+const lblOp = document.getElementById('lbl-opacity');
+slOp.addEventListener('input', () => {
+  lblOp.textContent = slOp.value + '%';
+  if (window.electronAPI) window.electronAPI.setOpacity(slOp.value / 100);
+});
+
+// Checkboxes
+document.getElementById('chk-aot').addEventListener('change', e => {
+  if (window.electronAPI) window.electronAPI.setAlwaysOnTop(e.target.checked);
+});
+document.getElementById('chk-statusbar').addEventListener('change', e => {
+  document.getElementById('status-bar').style.display = e.target.checked ? '' : 'none';
+  if (window.electronAPI) window.electronAPI.saveSettings({ overlay: { show_status_bar: e.target.checked }});
+});
+document.getElementById('chk-qa').addEventListener('change', e => {
+  document.getElementById('quick-actions').style.display = e.target.checked ? '' : 'none';
+  if (window.electronAPI) window.electronAPI.saveSettings({ overlay: { show_quick_actions: e.target.checked }});
+});
+document.getElementById('chk-hitboxes').addEventListener('change', e => {
+  document.body.classList.toggle('show-hitboxes', e.target.checked);
+});
+
+// Load settings into panel
+async function loadBoundsIntoSettings() {
+  if (!window.electronAPI) return;
+  try {
+    const b = await window.electronAPI.getOverlayBounds();
+    if (!b) return;
+    slOp.value = Math.round((b.opacity ?? 1) * 100);
+    lblOp.textContent = slOp.value + '%';
+    document.getElementById('chk-aot').checked = true;
+  } catch {}
+}
+
+// Apply initial settings from main
+function applySettings(s) {
+  if (!s) return;
+  const ov = s.overlay || {};
+  if (ov.theme) applyTheme(ov.theme);
+  if (ov.opacity != null) {
+    slOp.value = Math.round(ov.opacity * 100);
+    lblOp.textContent = slOp.value + '%';
+  }
+  if (ov.show_status_bar === false)
+    document.getElementById('status-bar').style.display = 'none';
+  if (ov.show_quick_actions === false)
+    document.getElementById('quick-actions').style.display = 'none';
+  if (ov.mini_mode) applyMiniMode(true);
+  // Sync size preset button
+  if (ov.size_preset) {
+    document.querySelectorAll('#size-btns .sp-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.preset === ov.size_preset);
+    });
+  }
+  // Update CSS vars from initial size
+  if (ov.width) document.documentElement.style.setProperty('--ow', ov.width + 'px');
+  if (ov.height) document.documentElement.style.setProperty('--oh', ov.height + 'px');
+}
+
+// Load settings on start
+if (window.electronAPI) {
+  window.electronAPI.getSettings().then(applySettings).catch(() => {});
+}
+
+// Init
+showBubble('Starting up~ 💕', 2800, true);
+</script>
+</body>
+</html>

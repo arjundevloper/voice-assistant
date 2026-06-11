@@ -1,0 +1,12 @@
+{
+  "name": "emi-overlay",
+  "version": "1.0.0",
+  "description": "Emi Desktop Assistant Overlay",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "devDependencies": {
+    "electron": "^42.4.0"
+  }
+}

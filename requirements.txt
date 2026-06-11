@@ -1,0 +1,11 @@
+aiofiles
+aiohttp
+comtypes
+edge-tts
+pygame
+pyautogui
+pycaw
+pygetwindow
+pyperclip
+speechrecognition
+websockets

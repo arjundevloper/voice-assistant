@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Emi — Hitbox Editor</title>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#06030f;--panel:#0c0820;--border:rgba(130,80,255,.28);
+  --c1:130,80,255;--c2:200,60,255;
+  --text:#e2d5ff;--sub:rgba(220,200,255,.52);--red:255,70,90;
+}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;
+     font-size:13px;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+
+/* ── TOOLBAR ── */
+#toolbar{
+  display:flex;align-items:center;gap:10px;padding:10px 16px;
+  background:var(--panel);border-bottom:1px solid var(--border);flex-shrink:0;
+}
+#toolbar h1{font-size:13px;font-weight:800;letter-spacing:2px;text-transform:uppercase;
+  background:linear-gradient(90deg,rgba(var(--c1),1),rgba(var(--c2),1));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-right:8px}
+
+.t-btn{
+  padding:5px 14px;border-radius:7px;border:1px solid rgba(var(--c1),.35);
+  background:rgba(var(--c1),.1);color:rgba(var(--c1),.9);
+  font-size:11px;font-weight:600;cursor:pointer;letter-spacing:.4px;
+  transition:background .18s,border-color .18s;white-space:nowrap;
+}
+.t-btn:hover{background:rgba(var(--c1),.26);border-color:rgba(var(--c1),.7)}
+.t-btn.danger{border-color:rgba(var(--red),.4);background:rgba(var(--red),.1);color:rgba(var(--red),.9)}
+.t-btn.danger:hover{background:rgba(var(--red),.25);border-color:rgba(var(--red),.75)}
+.t-btn.primary{border-color:rgba(var(--c1),.7);background:rgba(var(--c1),.22);color:#fff}
+.t-btn.primary:hover{background:rgba(var(--c1),.38)}
+
+#tip{font-size:10px;color:var(--sub);margin-left:auto;letter-spacing:.3px}
+
+/* ── MAIN LAYOUT ── */
+#main{display:flex;flex:1;overflow:hidden}
+
+/* ── CANVAS PANEL ── */
+#canvas-wrap{
+  flex:1;display:flex;align-items:center;justify-content:center;
+  background:repeating-conic-gradient(rgba(255,255,255,.03) 0% 25%,transparent 0% 50%) 0 0/20px 20px;
+  position:relative;overflow:hidden;
+}
+#canvas-wrap.has-img{cursor:crosshair}
+#drop-msg{
+  text-align:center;pointer-events:none;color:var(--sub);
+}
+#drop-msg .big{font-size:48px;line-height:1;margin-bottom:10px}
+#drop-msg p{font-size:12px;letter-spacing:.5px}
+#editor-canvas{
+  display:none;position:absolute;
+  image-rendering:pixelated;
+  touch-action:none;
+}
+
+/* ── SIDEBAR ── */
+#sidebar{
+  width:260px;flex-shrink:0;
+  background:var(--panel);border-left:1px solid var(--border);
+  display:flex;flex-direction:column;overflow:hidden;
+}
+#sidebar-head{
+  padding:12px 14px;border-bottom:1px solid var(--border);
+  font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;
+  color:rgba(var(--c1),.85);display:flex;align-items:center;justify-content:space-between;
+}
+#hb-list{flex:1;overflow-y:auto;padding:8px}
+#hb-list::-webkit-scrollbar{width:4px}
+#hb-list::-webkit-scrollbar-track{background:transparent}
+#hb-list::-webkit-scrollbar-thumb{background:rgba(var(--c1),.3);border-radius:2px}
+
+.hb-card{
+  background:rgba(var(--c1),.06);border:1px solid rgba(var(--c1),.2);
+  border-radius:9px;padding:10px;margin-bottom:8px;
+  transition:border-color .2s;position:relative;
+}
+.hb-card:hover{border-color:rgba(var(--c1),.5)}
+.hb-card.selected{border-color:rgba(var(--c1),.85);background:rgba(var(--c1),.13)}
+.hb-card-row{display:flex;align-items:center;gap:6px;margin-bottom:6px}
+.hb-num{
+  width:20px;height:20px;border-radius:5px;flex-shrink:0;
+  background:rgba(var(--c1),.22);
+  font-size:10px;font-weight:800;color:rgba(var(--c1),1);
+  display:flex;align-items:center;justify-content:center;
+}
+.hb-label-in{
+  flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(var(--c1),.2);
+  border-radius:5px;padding:3px 7px;color:var(--text);font-size:11px;
+  outline:none;transition:border-color .18s;
+}
+.hb-label-in:focus{border-color:rgba(var(--c1),.65)}
+.hb-del{
+  width:22px;height:22px;border-radius:5px;border:1px solid rgba(var(--red),.3);
+  background:rgba(var(--red),.08);color:rgba(var(--red),.8);
+  font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:background .18s;flex-shrink:0;
+}
+.hb-del:hover{background:rgba(var(--red),.25);border-color:rgba(var(--red),.7)}
+.hb-expr-row{display:flex;align-items:center;gap:6px}
+.hb-expr-label{font-size:9px;color:var(--sub);flex-shrink:0}
+.hb-expr-sel{
+  flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(var(--c1),.22);
+  border-radius:5px;padding:3px 6px;color:var(--text);font-size:11px;outline:none;
+  cursor:pointer;transition:border-color .18s;
+}
+.hb-expr-sel:focus{border-color:rgba(var(--c1),.65)}
+.hb-coords{font-size:9px;color:rgba(var(--c1),.5);margin-top:5px;letter-spacing:.3px}
+
+/* empty state */
+#empty-state{
+  padding:32px 16px;text-align:center;color:var(--sub);font-size:11px;line-height:1.7;
+}
+
+/* ── JSON PREVIEW ── */
+#json-pane{
+  border-top:1px solid var(--border);background:rgba(0,0,0,.4);
+  max-height:140px;overflow-y:auto;padding:8px 12px;flex-shrink:0;
+}
+#json-pane pre{font-size:10px;color:rgba(var(--c1),.75);white-space:pre-wrap;word-break:break-all;
+  font-family:'Cascadia Code','Consolas',monospace}
+
+/* ── FILE INPUT hidden ── */
+#file-in{display:none}
+
+/* SELECTION RECT drawn while dragging */
+#sel-rect{
+  position:absolute;border:1.5px dashed rgba(var(--c1),1);
+  background:rgba(var(--c1),.12);pointer-events:none;display:none;border-radius:3px;
+}
+
+/* overlay boxes on canvas */
+.ov-box{
+  position:absolute;border:2px solid rgba(var(--c1),.8);
+  background:rgba(var(--c1),.15);border-radius:4px;pointer-events:none;
+  transition:border-color .2s,background .2s;
+}
+.ov-box.sel{border-color:rgba(var(--c2),1);background:rgba(var(--c2),.25)}
+.ov-box-label{
+  position:absolute;top:-18px;left:0;
+  font-size:9px;font-weight:700;color:#fff;letter-spacing:.5px;
+  background:rgba(var(--c1),.85);padding:1px 5px;border-radius:3px;white-space:nowrap;
+}
+</style>
+</head>
+<body>
+
+<!-- TOOLBAR -->
+<div id="toolbar">
+  <h1>✦ Hitbox Editor</h1>
+  <button class="t-btn" onclick="document.getElementById('file-in').click()">📂 Load Sprite</button>
+  <button class="t-btn" id="btn-clear-hb" onclick="clearAll()" style="display:none">Clear All</button>
+  <button class="t-btn primary" id="btn-save" onclick="saveJSON()" style="display:none">💾 Save hitboxes.json</button>
+  <button class="t-btn" id="btn-copy" onclick="copyJSON()" style="display:none">Copy JSON</button>
+  <span id="tip">Load a sprite PNG, then click &amp; drag to draw hitboxes</span>
+  <input type="file" id="file-in" accept="image/png,image/jpeg,image/webp" onchange="loadImg(this)">
+</div>
+
+<!-- MAIN -->
+<div id="main">
+  <!-- Canvas area -->
+  <div id="canvas-wrap" id="cw">
+    <div id="drop-msg">
+      <div class="big">🖼</div>
+      <p>Drop a sprite PNG here<br>or use "Load Sprite"</p>
+    </div>
+    <canvas id="editor-canvas"></canvas>
+    <div id="sel-rect"></div>
+  </div>
+
+  <!-- Sidebar -->
+  <div id="sidebar">
+    <div id="sidebar-head">
+      <span>Hitboxes (<span id="hb-count">0</span>)</span>
+    </div>
+    <div id="hb-list">
+      <div id="empty-state">No hitboxes yet.<br>Load a sprite and draw regions.</div>
+    </div>
+    <div id="json-pane"><pre id="json-pre">{}</pre></div>
+  </div>
+</div>
+
+<script>
+const EXPRESSIONS = ['Idle','Happy','Listening','Working','Sleeping','Blush','Tsundere','Blink'];
+
+let img     = null;
+let imgNat  = {w:1,h:1};   // natural image dimensions
+let hitboxes= [];           // [{id,label,x,y,width,height,expression}] — all in %
+let selIdx  = -1;
+let dragging= false;
+let dragStart={x:0,y:0};
+
+const canvas = document.getElementById('editor-canvas');
+const cCtx   = canvas.getContext('2d');
+const wrap   = document.getElementById('canvas-wrap');
+const selRect= document.getElementById('sel-rect');
+const dropMsg= document.getElementById('drop-msg');
+const hbList = document.getElementById('hb-list');
+const hbCount= document.getElementById('hb-count');
+const jsonPre= document.getElementById('json-pre');
+
+// ── Load image ────────────────────────────────────────────────────────────
+function loadImg(inp){
+  const file=inp.files[0]; if(!file) return;
+  const url=URL.createObjectURL(file);
+  const im=new Image();
+  im.onload=()=>{
+    img=im; imgNat={w:im.naturalWidth,h:im.naturalHeight};
+    renderCanvas();
+    dropMsg.style.display='none';
+    canvas.style.display='block';
+    wrap.classList.add('has-img');
+    document.getElementById('btn-save').style.display='';
+    document.getElementById('btn-copy').style.display='';
+    document.getElementById('btn-clear-hb').style.display='';
+  };
+  im.src=url;
+}
+
+// Drag & drop onto the canvas area
+wrap.addEventListener('dragover',e=>{e.preventDefault();});
+wrap.addEventListener('drop',e=>{
+  e.preventDefault();
+  const file=e.dataTransfer.files[0];
+  if(!file||!file.type.startsWith('image/')) return;
+  const fakeInp={files:[file]};
+  loadImg(fakeInp);
+});
+
+// ── Render canvas ─────────────────────────────────────────────────────────
+function renderCanvas(){
+  if(!img) return;
+  // Fit image inside wrap while keeping aspect ratio
+  const maxW=wrap.offsetWidth-20, maxH=wrap.offsetHeight-20;
+  const scale=Math.min(maxW/imgNat.w, maxH/imgNat.h, 1);
+  const dw=Math.round(imgNat.w*scale), dh=Math.round(imgNat.h*scale);
+  canvas.width=dw; canvas.height=dh;
+  canvas.style.width=dw+'px'; canvas.style.height=dh+'px';
+  cCtx.clearRect(0,0,dw,dh);
+  cCtx.drawImage(img,0,0,dw,dh);
+
+  // Draw hitboxes
+  hitboxes.forEach((hb,i)=>{
+    const rx=hb.x/100*dw, ry=hb.y/100*dh,
+          rw=hb.width/100*dw, rh=hb.height/100*dh;
+    cCtx.strokeStyle=i===selIdx?'rgba(200,60,255,1)':'rgba(130,80,255,.85)';
+    cCtx.lineWidth=2;
+    cCtx.fillStyle=i===selIdx?'rgba(200,60,255,.2)':'rgba(130,80,255,.15)';
+    cCtx.beginPath();cCtx.roundRect(rx,ry,rw,rh,4);
+    cCtx.fill();cCtx.stroke();
+    // Label
+    cCtx.fillStyle=i===selIdx?'rgba(200,60,255,.95)':'rgba(130,80,255,.9)';
+    cCtx.font='bold 10px Segoe UI,system-ui,sans-serif';
+    cCtx.fillRect(rx,ry-16,cCtx.measureText(hb.label||hb.id).width+8,15);
+    cCtx.fillStyle='#fff';
+    cCtx.fillText(hb.label||hb.id, rx+4, ry-5);
+  });
+}
+
+// ── Mouse drawing ─────────────────────────────────────────────────────────
+function canvasXY(e){
+  const r=canvas.getBoundingClientRect();
+  return {x:e.clientX-r.left, y:e.clientY-r.top};
+}
+
+canvas.addEventListener('mousedown',e=>{
+  if(!img||e.button!==0) return;
+  const p=canvasXY(e);
+
+  // Check if clicking inside existing box
+  const hit=findHitbox(p);
+  if(hit>=0){ selIdx=hit; renderCanvas(); renderList(); return; }
+
+  dragging=true; selIdx=-1;
+  dragStart=p;
+  selRect.style.cssText=`display:block;left:${p.x+canvas.offsetLeft}px;top:${p.y+canvas.offsetTop}px;width:0;height:0`;
+});
+
+canvas.addEventListener('mousemove',e=>{
+  if(!dragging) return;
+  const p=canvasXY(e);
+  const x=Math.min(p.x,dragStart.x), y=Math.min(p.y,dragStart.y);
+  const w=Math.abs(p.x-dragStart.x), h=Math.abs(p.y-dragStart.y);
+  selRect.style.left  =(x+canvas.offsetLeft)+'px';
+  selRect.style.top   =(y+canvas.offsetTop) +'px';
+  selRect.style.width =w+'px'; selRect.style.height=h+'px';
+});
+
+canvas.addEventListener('mouseup',e=>{
+  if(!dragging){return;}
+  dragging=false;
+  selRect.style.display='none';
+  const p=canvasXY(e);
+  const x=Math.min(p.x,dragStart.x), y=Math.min(p.y,dragStart.y);
+  const w=Math.abs(p.x-dragStart.x), h=Math.abs(p.y-dragStart.y);
+  if(w<8||h<8) return; // too small, ignore
+
+  const cW=canvas.width, cH=canvas.height;
+  hitboxes.push({
+    id:'zone_'+(hitboxes.length+1),
+    label:'Zone '+(hitboxes.length+1),
+    x:+(x/cW*100).toFixed(2),
+    y:+(y/cH*100).toFixed(2),
+    width: +(w/cW*100).toFixed(2),
+    height:+(h/cH*100).toFixed(2),
+    expression:'Happy',
+  });
+  selIdx=hitboxes.length-1;
+  renderCanvas(); renderList(); updateJSON();
+});
+
+function findHitbox(p){
+  const cW=canvas.width, cH=canvas.height;
+  for(let i=hitboxes.length-1;i>=0;i--){
+    const hb=hitboxes[i];
+    const rx=hb.x/100*cW,ry=hb.y/100*cH,rw=hb.width/100*cW,rh=hb.height/100*cH;
+    if(p.x>=rx&&p.x<=rx+rw&&p.y>=ry&&p.y<=ry+rh) return i;
+  }
+  return -1;
+}
+
+// ── Sidebar rendering ─────────────────────────────────────────────────────
+function renderList(){
+  hbCount.textContent=hitboxes.length;
+  if(!hitboxes.length){
+    hbList.innerHTML='<div id="empty-state">No hitboxes yet.<br>Load a sprite and draw regions.</div>';
+    return;
+  }
+  hbList.innerHTML='';
+  hitboxes.forEach((hb,i)=>{
+    const div=document.createElement('div');
+    div.className='hb-card'+(i===selIdx?' selected':'');
+    div.onclick=()=>{selIdx=i;renderCanvas();renderList();};
+
+    const exOpts=EXPRESSIONS.map(e=>`<option value="${e}"${e===hb.expression?' selected':''}>${e}</option>`).join('');
+
+    div.innerHTML=`
+      <div class="hb-card-row">
+        <div class="hb-num">${i+1}</div>
+        <input class="hb-label-in" value="${hb.label||hb.id}" placeholder="Label"
+               oninput="hitboxes[${i}].label=this.value;hitboxes[${i}].id=this.value.toLowerCase().replace(/\\s+/g,'_')||'zone_${i+1}';renderCanvas();updateJSON()">
+        <button class="hb-del" onclick="event.stopPropagation();deleteHB(${i})">✕</button>
+      </div>
+      <div class="hb-expr-row">
+        <span class="hb-expr-label">Expression on hover →</span>
+        <select class="hb-expr-sel" onchange="hitboxes[${i}].expression=this.value;updateJSON()">${exOpts}</select>
+      </div>
+      <div class="hb-coords">x:${hb.x.toFixed(1)}% y:${hb.y.toFixed(1)}% w:${hb.width.toFixed(1)}% h:${hb.height.toFixed(1)}%</div>
+    `;
+    hbList.appendChild(div);
+  });
+}
+
+function deleteHB(i){
+  hitboxes.splice(i,1);
+  if(selIdx>=hitboxes.length) selIdx=hitboxes.length-1;
+  renderCanvas();renderList();updateJSON();
+}
+function clearAll(){
+  if(!confirm('Clear all hitboxes?')) return;
+  hitboxes=[];selIdx=-1;renderCanvas();renderList();updateJSON();
+}
+
+// ── JSON output ───────────────────────────────────────────────────────────
+function buildJSON(){
+  return {default: hitboxes.map(hb=>({
+    id:       hb.id   ||'zone',
+    label:    hb.label||hb.id,
+    x:        +hb.x.toFixed(2),
+    y:        +hb.y.toFixed(2),
+    width:    +hb.width.toFixed(2),
+    height:   +hb.height.toFixed(2),
+    expression: hb.expression,
+  }))};
+}
+function updateJSON(){
+  jsonPre.textContent=JSON.stringify(buildJSON(),null,2);
+  document.getElementById('btn-save').style.display=hitboxes.length?'':'none';
+  document.getElementById('btn-copy').style.display=hitboxes.length?'':'none';
+  document.getElementById('btn-clear-hb').style.display=hitboxes.length?'':'none';
+}
+function saveJSON(){
+  const blob=new Blob([JSON.stringify(buildJSON(),null,2)],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download='hitboxes.json'; a.click();
+  a.title='Saved! Replace data/hitboxes.json in your Emi folder.';
+}
+function copyJSON(){
+  navigator.clipboard.writeText(JSON.stringify(buildJSON(),null,2))
+    .then(()=>{
+      const b=document.getElementById('btn-copy');
+      b.textContent='✓ Copied!';setTimeout(()=>b.textContent='Copy JSON',1800);
+    });
+}
+
+// ── Keyboard shortcuts ────────────────────────────────────────────────────
+document.addEventListener('keydown',e=>{
+  if(e.key==='Delete'&&selIdx>=0){deleteHB(selIdx);}
+  if(e.key==='Escape'){selIdx=-1;renderCanvas();renderList();}
+});
+
+// ── Resize ────────────────────────────────────────────────────────────────
+window.addEventListener('resize',()=>{if(img) renderCanvas();});
+
+updateJSON();
+</script>
+</body>
+</html>

@@ -1,0 +1,456 @@
+{
+  "last_app": "brave",
+  "last_app_exe": "brave.exe",
+  "last_focused_app": "C:\\Windows\\system32\\cmd.exe ",
+  "last_focused_exe": "cmd.exe",
+  "last_website": "github",
+  "last_search_query": "youtube",
+  "last_command": "open github",
+  "current_outfit": "default",
+  "conversation_context": [
+    {
+      "role": "assistant",
+      "content": "Ollama had an error~"
+    },
+    {
+      "role": "user",
+      "content": "me open Brave"
+    },
+    {
+      "role": "assistant",
+      "content": "Ollama had an error~"
+    },
+    {
+      "role": "assistant",
+      "content": "Opened brave"
+    },
+    {
+      "role": "user",
+      "content": "Amy open Brave"
+    },
+    {
+      "role": "assistant",
+      "content": "Opening brave for you~ 💕"
+    },
+    {
+      "role": "user",
+      "content": "open YouTube"
+    },
+    {
+      "role": "assistant",
+      "content": "Opening youtube~"
+    },
+    {
+      "role": "user",
+      "content": "me open Brave"
+    },
+    {
+      "role": "assistant",
+      "content": "Ollama had an error~"
+    },
+    {
+      "role": "user",
+      "content": "volume 50%"
+    },
+    {
+      "role": "assistant",
+      "content": "Volume set to 50%~"
+    },
+    {
+      "role": "user",
+      "content": "play first video"
+    },
+    {
+      "role": "assistant",
+      "content": "Ollama had an error~"
+    },
+    {
+      "role": "user",
+      "content": "volume decrease"
+    },
+    {
+      "role": "assistant",
+      "content": "Ollama had an error~"
+    },
+    {
+      "role": "user",
+      "content": "Sardi Se kah dijiye Sar ji chhutti"
+    },
+    {
+      "role": "assistant",
+      "content": "Ollama had an error~"
+    },
+    {
+      "role": "user",
+      "content": "Amy close Brave"
+    },
+    {
+      "role": "assistant",
+      "content": "Closed brave~"
+    },
+    {
+      "role": "assistant",
+      "content": "Opened brave"
+    },
+    {
+      "role": "user",
+      "content": "Amy open Brave"
+    },
+    {
+      "role": "assistant",
+      "content": "Opening brave for you~ 💕"
+    },
+    {
+      "role": "user",
+      "content": "restore page"
+    },
+    {
+      "role": "assistant",
+      "content": "Ollama had an error~"
+    },
+    {
+      "role": "user",
+      "content": "bahut hard"
+    },
+    {
+      "role": "assistant",
+      "content": "Ollama had an error~"
+    },
+    {
+      "role": "user",
+      "content": "and how do we have"
+    },
+    {
+      "role": "assistant",
+      "content": "Ollama had an error~"
+    },
+    {
+      "role": "user",
+      "content": "content of this break"
+    },
+    {
+      "role": "assistant",
+      "content": "Ollama had an error~"
+    },
+    {
+      "role": "user",
+      "content": "volume 50%"
+    },
+    {
+      "role": "assistant",
+      "content": "Volume set to 50%~"
+    },
+    {
+      "role": "user",
+      "content": "why I score"
+    },
+    {
+      "role": "assistant",
+      "content": "Ollama had an error~"
+    },
+    {
+      "role": "user",
+      "content": "Amy volume decrease"
+    },
+    {
+      "role": "assistant",
+      "content": "Ollama had an error~"
+    },
+    {
+      "role": "user",
+      "content": "hemi volume increase"
+    },
+    {
+      "role": "assistant",
+      "content": "Ollama had an error~"
+    },
+    {
+      "role": "user",
+      "content": "Amy resume"
+    },
+    {
+      "role": "assistant",
+      "content": "Playing~"
+    },
+    {
+      "role": "user",
+      "content": "semi how is the"
+    },
+    {
+      "role": "assistant",
+      "content": "Ollama had an error~ Try again."
+    },
+    {
+      "role": "user",
+      "content": "hemi how is the day"
+    },
+    {
+      "role": "assistant",
+      "content": "Ollama had an error~ Try again."
+    },
+    {
+      "role": "user",
+      "content": "Amy volume 100"
+    },
+    {
+      "role": "assistant",
+      "content": "Volume set to 100%~"
+    },
+    {
+      "role": "user",
+      "content": "volume 50%"
+    },
+    {
+      "role": "assistant",
+      "content": "Volume set to 50%~"
+    },
+    {
+      "role": "user",
+      "content": "Amy how is the day"
+    },
+    {
+      "role": "assistant",
+      "content": "It's 03:46 PM"
+    },
+    {
+      "role": "user",
+      "content": "Amy how are you doing"
+    },
+    {
+      "role": "assistant",
+      "content": "It's 03:50 PM"
+    },
+    {
+      "role": "user",
+      "content": "Amy how is the day"
+    },
+    {
+      "role": "assistant",
+      "content": "It's 04:03 PM"
+    },
+    {
+      "role": "user",
+      "content": "semi open Brave"
+    },
+    {
+      "role": "assistant",
+      "content": "Opening brave"
+    },
+    {
+      "role": "user",
+      "content": "Amy open Minecraft"
+    },
+    {
+      "role": "assistant",
+      "content": "Opening minecraft"
+    },
+    {
+      "role": "user",
+      "content": "open minecraft.exe"
+    },
+    {
+      "role": "assistant",
+      "content": "Opening minecraft.exe"
+    },
+    {
+      "role": "user",
+      "content": "open OBS"
+    },
+    {
+      "role": "assistant",
+      "content": "Opening obs"
+    },
+    {
+      "role": "user",
+      "content": "open Play Store"
+    },
+    {
+      "role": "user",
+      "content": "Amy pause"
+    },
+    {
+      "role": "user",
+      "content": "Amy pause"
+    },
+    {
+      "role": "user",
+      "content": "volume 50"
+    },
+    {
+      "role": "user",
+      "content": "volume"
+    },
+    {
+      "role": "assistant",
+      "content": "Try again"
+    },
+    {
+      "role": "user",
+      "content": "Amy open Brave"
+    },
+    {
+      "role": "assistant",
+      "content": "Opening brave"
+    },
+    {
+      "role": "user",
+      "content": "open YouTube"
+    },
+    {
+      "role": "user",
+      "content": "Amy open YouTube"
+    },
+    {
+      "role": "user",
+      "content": "Amy open YouTube"
+    },
+    {
+      "role": "user",
+      "content": "Amy open Brave"
+    },
+    {
+      "role": "assistant",
+      "content": "Opening brave"
+    },
+    {
+      "role": "user",
+      "content": "open YouTube"
+    },
+    {
+      "role": "user",
+      "content": "YouTube"
+    },
+    {
+      "role": "assistant",
+      "content": "Error occurred"
+    },
+    {
+      "role": "user",
+      "content": "Amy volume 50"
+    },
+    {
+      "role": "user",
+      "content": "open Brave"
+    },
+    {
+      "role": "assistant",
+      "content": "Opening brave"
+    },
+    {
+      "role": "user",
+      "content": "Amy open browser"
+    },
+    {
+      "role": "assistant",
+      "content": "I couldn't find browser"
+    },
+    {
+      "role": "user",
+      "content": "Ami open Brave"
+    },
+    {
+      "role": "assistant",
+      "content": "Opening brave"
+    },
+    {
+      "role": "user",
+      "content": "can you open Brave"
+    },
+    {
+      "role": "assistant",
+      "content": "Opening brave"
+    },
+    {
+      "role": "user",
+      "content": "close it"
+    },
+    {
+      "role": "assistant",
+      "content": "Closed brave"
+    },
+    {
+      "role": "user",
+      "content": "8:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Something went wrong with Ollama."
+    },
+    {
+      "role": "user",
+      "content": "Amy open Brave"
+    },
+    {
+      "role": "assistant",
+      "content": "Opening brave"
+    },
+    {
+      "role": "user",
+      "content": "Amy open YouTube"
+    },
+    {
+      "role": "assistant",
+      "content": "Opening youtube"
+    },
+    {
+      "role": "user",
+      "content": "close it"
+    },
+    {
+      "role": "assistant",
+      "content": "Closed the active window"
+    },
+    {
+      "role": "user",
+      "content": "semi open Brave"
+    },
+    {
+      "role": "assistant",
+      "content": "Opening brave"
+    },
+    {
+      "role": "user",
+      "content": "Amy open browser"
+    },
+    {
+      "role": "assistant",
+      "content": "I couldn't find browser"
+    },
+    {
+      "role": "user",
+      "content": "Amy open Brave"
+    },
+    {
+      "role": "assistant",
+      "content": "Opening brave"
+    },
+    {
+      "role": "user",
+      "content": "Tajmahal ke barabar Mein Bani is jawab Masjid Ke Piche ki side mein jo Tute Hue mandiron ke avshesh Pade Hain unke bare mein"
+    },
+    {
+      "role": "assistant",
+      "content": "AI is paused. I can still control your Windows though~"
+    },
+    {
+      "role": "user",
+      "content": "emy open brave"
+    },
+    {
+      "role": "assistant",
+      "content": "Opening brave~"
+    },
+    {
+      "role": "user",
+      "content": "open github"
+    },
+    {
+      "role": "assistant",
+      "content": "Opening github"
+    }
+  ],
+  "clipboard_history": [],
+  "user_preferences": {},
+  "last_session_summary": "",
+  "total_sessions": 6
+}

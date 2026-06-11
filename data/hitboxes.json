@@ -1,0 +1,49 @@
+{
+  "default": [
+    {
+      "id": "zone_1",
+      "label": "Zone 1",
+      "x": 33.63,
+      "y": 10.77,
+      "width": 40.56,
+      "height": 44.1,
+      "expression": "Happy"
+    },
+    {
+      "id": "zone_2",
+      "label": "Zone 2",
+      "x": 29.79,
+      "y": 55.75,
+      "width": 46.46,
+      "height": 10.91,
+      "expression": "Tsundere"
+    },
+    {
+      "id": "zone_3",
+      "label": "Zone 3",
+      "x": 17.85,
+      "y": 67.4,
+      "width": 11.95,
+      "height": 32.45,
+      "expression": "Listening"
+    },
+    {
+      "id": "zone_4",
+      "label": "Zone 4",
+      "x": 74.93,
+      "y": 68.14,
+      "width": 13.13,
+      "height": 31.42,
+      "expression": "Listening"
+    },
+    {
+      "id": "zone_5",
+      "label": "Zone 5",
+      "x": 30.83,
+      "y": 67.55,
+      "width": 43.36,
+      "height": 31.86,
+      "expression": "Blush"
+    }
+  ]
+}

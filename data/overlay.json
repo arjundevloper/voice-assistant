@@ -1,0 +1,7 @@
+{
+  "bubble_duration_ms": 4000,
+  "blink_interval_ms": 4000,
+  "blink_duration_ms": 200,
+  "idle_timeout_ms": 30000,
+  "drag_enabled": true
+}
