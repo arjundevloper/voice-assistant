@@ -26,24 +26,6 @@
       "width": 11.95,
       "height": 32.45,
       "expression": "Listening"
-    },
-    {
-      "id": "zone_4",
-      "label": "Zone 4",
-      "x": 74.93,
-      "y": 68.14,
-      "width": 13.13,
-      "height": 31.42,
-      "expression": "Listening"
-    },
-    {
-      "id": "zone_5",
-      "label": "Zone 5",
-      "x": 30.83,
-      "y": 67.55,
-      "width": 43.36,
-      "height": 31.86,
-      "expression": "Blush"
     }
   ]
 }
