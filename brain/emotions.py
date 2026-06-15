@@ -1,7 +1,3 @@
-"""
-brain/emotions.py — Expression and emotion manager for Emi OS v5.
-Fixed: SPEAKING no longer hard-codes HAPPY; expressions vary by tone.
-"""
 from __future__ import annotations
 
 import asyncio
